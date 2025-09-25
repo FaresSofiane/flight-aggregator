@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"sort"
-	"time"
 )
 
 type FlightService struct {

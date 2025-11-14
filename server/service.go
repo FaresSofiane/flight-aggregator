@@ -17,7 +17,7 @@ func NewFlightService(repositories []FlightRepository) *FlightService {
 
 func (s *FlightService) GetAllFlights(ctx context.Context) ([]UnifiedFlight, error) {
 	results := []UnifiedFlight{}
-	
+
 	for _, repo := range s.repositories {
 		flights, err := repo.GetFlights(ctx)
 		if err != nil {
@@ -25,7 +25,7 @@ func (s *FlightService) GetAllFlights(ctx context.Context) ([]UnifiedFlight, err
 		}
 		results = append(results, flights...)
 	}
-	
+
 	return results, nil
 }
 
@@ -34,7 +34,7 @@ func (s *FlightService) GetFlightsSortedBy(ctx context.Context, sortBy string) (
 	if err != nil {
 		return nil, err
 	}
-	
+
 	switch sortBy {
 	case "price":
 		sort.Slice(flights, func(i, j int) bool {
@@ -49,6 +49,6 @@ func (s *FlightService) GetFlightsSortedBy(ctx context.Context, sortBy string) (
 			return flights[i].TravelTime < flights[j].TravelTime
 		})
 	}
-	
+
 	return flights, nil
 }

@@ -1,5 +1,7 @@
 # Flight Aggregator
 
+Sofiane Fares | Galaad Filâtre | Julien Esnault | Clement Suire
+
 The goal of the api is to get every flight to a destination and sort it by : 
     - price,
     - departure date

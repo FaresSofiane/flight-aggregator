@@ -70,13 +70,10 @@ func TestFlightService_GetFlightsSortedBy(t *testing.T) {
 		assert.Equal(t, 10*time.Hour, sorted[2].TravelTime)
 	})
 
-	t.Run("Default sort (price)", func(t *testing.T) {
+	t.Run("No sort on invalid key", func(t *testing.T) {
 		sorted, err := service.GetFlightsSortedBy(ctx, "invalid")
 		assert.NoError(t, err)
 		assert.Len(t, sorted, 3)
-		assert.Equal(t, 750.0, sorted[0].Price)
-		assert.Equal(t, 850.0, sorted[1].Price)
-		assert.Equal(t, 950.0, sorted[2].Price)
 	})
 }
 

@@ -36,30 +36,29 @@ func (r *Server1Repository) GetFlights(ctx context.Context) ([]UnifiedFlight, er
 	}
 	defer resp.Body.Close()
 	
-	var flightResp FlightServer1Response
-	if err := json.NewDecoder(resp.Body).Decode(&flightResp); err != nil {
+	var flights []FlightServer1
+	if err := json.NewDecoder(resp.Body).Decode(&flights); err != nil {
 		return nil, err
 	}
 	
-	var unifiedFlights []UnifiedFlight
-	for _, flight := range flightResp.Flights {
-		travelTime := flight.ArrivalTime.Sub(flight.DepartureTime)
-		
-		unifiedFlights = append(unifiedFlights, UnifiedFlight{
-			BookingID:        flight.BookingID,
-			PassengerName:    flight.PassengerName,
-			DepartureAirport: flight.DepartureAirport,
-			ArrivalAirport:   flight.ArrivalAirport,
-			DepartureTime:    flight.DepartureTime,
-			ArrivalTime:      flight.ArrivalTime,
-			TravelTime:       travelTime,
-			Price:            flight.Price,
-			Currency:         flight.Currency,
-			FlightNumbers:    []string{flight.FlightNumber},
+	result := make([]UnifiedFlight, 0, len(flights))
+	for _, f := range flights {
+		duration := f.ArrivalTime.Sub(f.DepartureTime)
+		result = append(result, UnifiedFlight{
+			BookingID:        f.BookingID,
+			PassengerName:    f.PassengerName,
+			DepartureAirport: f.DepartureAirport,
+			ArrivalAirport:   f.ArrivalAirport,
+			DepartureTime:    f.DepartureTime,
+			ArrivalTime:      f.ArrivalTime,
+			TravelTime:       duration,
+			Price:            f.Price,
+			Currency:         f.Currency,
+			FlightNumbers:    []string{f.FlightNumber},
 		})
 	}
 	
-	return unifiedFlights, nil
+	return result, nil
 }
 
 type Server2Repository struct {
@@ -86,44 +85,44 @@ func (r *Server2Repository) GetFlights(ctx context.Context) ([]UnifiedFlight, er
 	}
 	defer resp.Body.Close()
 	
-	var flightResp FlightServer2Response
-	if err := json.NewDecoder(resp.Body).Decode(&flightResp); err != nil {
+	var flights []FlightServer2
+	if err := json.NewDecoder(resp.Body).Decode(&flights); err != nil {
 		return nil, err
 	}
 	
-	var unifiedFlights []UnifiedFlight
-	for _, flight := range flightResp.FlightToBook {
-		if len(flight.Segments) == 0 {
+	result := make([]UnifiedFlight, 0)
+	for _, f := range flights {
+		if len(f.Segments) == 0 {
 			continue
 		}
 		
-		firstSegment := flight.Segments[0]
-		lastSegment := flight.Segments[len(flight.Segments)-1]
+		first := f.Segments[0]
+		last := f.Segments[len(f.Segments)-1]
 		
-		departureTime := firstSegment.Flight.Depart
-		arrivalTime := lastSegment.Flight.Arrive
-		travelTime := arrivalTime.Sub(departureTime)
+		start := first.Flight.Depart
+		end := last.Flight.Arrive
+		duration := end.Sub(start)
 		
-		var flightNumbers []string
-		for _, segment := range flight.Segments {
-			flightNumbers = append(flightNumbers, segment.Flight.Number)
+		numbers := make([]string, len(f.Segments))
+		for i, seg := range f.Segments {
+			numbers[i] = seg.Flight.Number
 		}
 		
-		passengerName := fmt.Sprintf("%s %s", flight.Traveler.FirstName, flight.Traveler.LastName)
+		name := fmt.Sprintf("%s %s", f.Traveler.FirstName, f.Traveler.LastName)
 		
-		unifiedFlights = append(unifiedFlights, UnifiedFlight{
-			BookingID:        flight.Reference,
-			PassengerName:    passengerName,
-			DepartureAirport: firstSegment.Flight.From,
-			ArrivalAirport:   lastSegment.Flight.To,
-			DepartureTime:    departureTime,
-			ArrivalTime:      arrivalTime,
-			TravelTime:       travelTime,
-			Price:            flight.Total.Amount,
-			Currency:         flight.Total.Currency,
-			FlightNumbers:    flightNumbers,
+		result = append(result, UnifiedFlight{
+			BookingID:        f.Reference,
+			PassengerName:    name,
+			DepartureAirport: first.Flight.From,
+			ArrivalAirport:   last.Flight.To,
+			DepartureTime:    start,
+			ArrivalTime:      end,
+			TravelTime:       duration,
+			Price:            f.Total.Amount,
+			Currency:         f.Total.Currency,
+			FlightNumbers:    numbers,
 		})
 	}
 	
-	return unifiedFlights, nil
+	return result, nil
 }

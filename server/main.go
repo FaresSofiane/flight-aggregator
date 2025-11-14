@@ -17,27 +17,26 @@ func main() {
 	viper.SetDefault("JSERVER2_PORT", "4002")
 	
 	port := viper.GetString("SERVER_PORT")
-	server1URL := "http://" + viper.GetString("JSERVER1_NAME") + ":" + viper.GetString("JSERVER1_PORT")
-	server2URL := "http://" + viper.GetString("JSERVER2_NAME") + ":" + viper.GetString("JSERVER2_PORT")
+	url1 := "http://" + viper.GetString("JSERVER1_NAME") + ":" + viper.GetString("JSERVER1_PORT")
+	url2 := "http://" + viper.GetString("JSERVER2_NAME") + ":" + viper.GetString("JSERVER2_PORT")
 	
-	server1Repo := NewServer1Repository(server1URL)
-	server2Repo := NewServer2Repository(server2URL)
+	repo1 := NewServer1Repository(url1)
+	repo2 := NewServer2Repository(url2)
 	
-	flightService := NewFlightService([]FlightRepository{server1Repo, server2Repo})
+	service := NewFlightService([]FlightRepository{repo1, repo2})
 	
 	r := gin.Default()
 	
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
-			"message": "Serveur en bonne santé",
 		})
 	})
 	
 	r.GET("/flight", func(c *gin.Context) {
 		sortBy := c.DefaultQuery("sort", "price")
 		
-		flights, err := flightService.GetFlightsSortedBy(c, sortBy)
+		flights, err := service.GetFlightsSortedBy(c, sortBy)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -45,12 +44,9 @@ func main() {
 			return
 		}
 		
-		c.JSON(http.StatusOK, gin.H{
-			"flights": flights,
-			"sort_by": sortBy,
-		})
+		c.JSON(http.StatusOK, flights)
 	})
 	
-	log.Printf("Serveur démarré sur le port %s", port)
+	log.Printf("Server running on port %s", port)
 	r.Run(":" + port)
 }

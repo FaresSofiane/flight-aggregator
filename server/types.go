@@ -2,10 +2,6 @@ package main
 
 import "time"
 
-type FlightServer1Response struct {
-	Flights []FlightServer1 `json:"flights"`
-}
-
 type FlightServer1 struct {
 	BookingID        string    `json:"bookingId"`
 	Status           string    `json:"status"`
@@ -17,10 +13,6 @@ type FlightServer1 struct {
 	ArrivalTime      time.Time `json:"arrivalTime"`
 	Price            float64   `json:"price"`
 	Currency         string    `json:"currency"`
-}
-
-type FlightServer2Response struct {
-	FlightToBook []FlightServer2 `json:"flight_to_book"`
 }
 
 type FlightServer2 struct {
